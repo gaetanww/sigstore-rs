@@ -23,7 +23,7 @@ pub struct LogEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attestation: Option<Attestation>,
     pub body: Body,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, skip_deserializing)]
     body_str: String, 
     pub integrated_time: i64,
     pub log_i_d: String,
