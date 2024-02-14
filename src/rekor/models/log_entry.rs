@@ -32,7 +32,7 @@ pub struct LogEntry {
 impl FromStr for LogEntry {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut log_entry_map = serde_json::from_str::<HashMap<&str, Value>>(s)?;
+        let mut log_entry_map = serde_json::from_str::<serde_json::Map<&str, Value>>(s)?;
         log_entry_map.entry("body").and_modify(|body| {
             let decoded_body = serde_json::to_value(
                 decode_body(body.as_str().expect("Failed to parse Body"))
@@ -129,12 +129,7 @@ impl LogEntry {
             .ok_or(UnexpectedError("missing inclusion proof".to_string()))
             .and_then(|proof| {
                 // encode as canonical JSON
-                let mut encoded_entry = Vec::new();
-                let mut ser = serde_json::Serializer::with_formatter(
-                    &mut encoded_entry,
-                    CanonicalFormatter::new(),
-                );
-                self.body.serialize(&mut ser)?;
+                let encoded_entry = serde_json::to_vec(&self.body)?;
                 proof.verify(&encoded_entry, rekor_key)
             })
     }
