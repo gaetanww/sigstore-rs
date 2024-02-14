@@ -32,15 +32,15 @@ pub struct LogEntry {
 impl FromStr for LogEntry {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut log_entry_map = serde_json::from_str::<serde_json::Map<&str, Value>>(s)?;
-        log_entry_map.entry("body").and_modify(|body| {
+        let mut log_entry_map: serde_json::Value = serde_json::from_str(s)?;
+        if let Some(body) = log_entry_map.get_mut("body") {
             let decoded_body = serde_json::to_value(
-                decode_body(body.as_str().expect("Failed to parse Body"))
-                    .expect("Failed to decode Body"),
-            )
-            .expect("Serialization failed");
+                decode_body(
+                    body.as_str().expect("Failed to parse Body")
+                ).expect("Failed to decode Body")
+            ).expect("Serialization failed");
             *body = json!(decoded_body);
-        });
+        }
         let log_entry_str = serde_json::to_string(&log_entry_map)?;
         Ok(serde_json::from_str::<LogEntry>(&log_entry_str).expect("Serialization failed"))
     }
