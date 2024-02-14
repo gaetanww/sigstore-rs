@@ -134,14 +134,7 @@ impl LogEntry {
             .as_ref()
             .ok_or(UnexpectedError("missing inclusion proof".to_string()))
             .and_then(|proof| {
-                // encode as canonical JSON
-                let mut encoded_entry = Vec::new();
-                let mut ser = serde_json::Serializer::with_formatter(
-                    &mut encoded_entry,
-                    CanonicalFormatter::new(),
-                );
-                self.body.serialize(&mut ser)?;
-                proof.verify(&encoded_entry, rekor_key)
+                proof.verify(self.body_str.as_bytes(), rekor_key)
             })
     }
 }
