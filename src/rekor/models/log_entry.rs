@@ -23,6 +23,8 @@ pub struct LogEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attestation: Option<Attestation>,
     pub body: Body,
+    #[serde(skip_serializing)]
+    body_str: String, 
     pub integrated_time: i64,
     pub log_i_d: String,
     pub log_index: i64,
@@ -33,7 +35,9 @@ impl FromStr for LogEntry {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut log_entry_map = serde_json::from_str::<HashMap<&str, Value>>(s)?;
+        let mut body_str = String::new();
         log_entry_map.entry("body").and_modify(|body| {
+            body_str = body.as_str().expect("Failed to parse Body").to_string();
             let decoded_body = serde_json::to_value(
                 decode_body(body.as_str().expect("Failed to parse Body"))
                     .expect("Failed to decode Body"),
@@ -42,6 +46,8 @@ impl FromStr for LogEntry {
             *body = json!(decoded_body);
         });
         let log_entry_str = serde_json::to_string(&log_entry_map)?;
+        let mut log_entry = serde_json::from_str::<LogEntry>(&log_entry_str).expect("Serialization failed");
+        log_entry.body_str = body_str;
         Ok(serde_json::from_str::<LogEntry>(&log_entry_str).expect("Serialization failed"))
     }
 }
