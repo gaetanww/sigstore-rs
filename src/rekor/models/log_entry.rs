@@ -128,8 +128,8 @@ impl LogEntry {
             .as_ref()
             .ok_or(UnexpectedError("missing inclusion proof".to_string()))
             .and_then(|proof| {
-                // encode as canonical JSON
                 let encoded_entry = serde_json::to_vec(&self.body)?;
+                println!("{}", String::from_utf8(encoded_entry.clone()));
                 proof.verify(&encoded_entry, rekor_key)
             })
     }
